@@ -40,14 +40,16 @@ class Jira(BotPlugin):
         """"""
         api_url = self.config['API_URL']
 
+        # TODO(alex) make this check more robust
         if self.config['OAUTH_ACCESS_TOKEN'] is None:
             message = 'oauth configuration not set'
-            self.log.error(message)
+            self.log.info(message)
             return False
 
         key_cert_data = None
+        cert_file = self.config['OAUTH_KEY_CERT_FILE']
         try:
-            with open(self.config['OAUTH_KEY_CERT_FILE'], 'r') as key_cert_file:
+            with open(cert_file, 'r') as key_cert_file:
                 key_cert_data = key_cert_file.read()
             oauth_dict = {
                 'access_token': self.config['OAUTH_ACCESS_TOKEN'],
@@ -63,7 +65,7 @@ class Jira(BotPlugin):
             self.log.error(message)
             return False
         except TypeError:
-            message = 'Unable to read key file {}'.format(self.config['OAUTH_KEY_CERT_FILE'])
+            message = 'Unable to read key file {}'.format(cert_file)
             self.log.error(message)
             return False
 
@@ -107,6 +109,7 @@ class Jira(BotPlugin):
         return CONFIG_TEMPLATE
 
     def check_configuration(self, configuration):
+        # TODO(alex) do some validation here!
         pass
 
     @botcmd(split_args_with=' ')
