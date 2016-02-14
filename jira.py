@@ -39,6 +39,12 @@ class Jira(BotPlugin):
     def _login_oauth(self):
         """"""
         api_url = self.config['API_URL']
+
+        if self.config['OAUTH_ACCESS_TOKEN'] is None:
+            message = 'oauth configuration not set'
+            self.log.error(message)
+            return False
+
         key_cert_data = None
         try:
             with open(self.config['OAUTH_KEY_CERT_FILE'], 'r') as key_cert_file:
@@ -56,6 +62,11 @@ class Jira(BotPlugin):
             message = 'Unable to login to {} via oauth'.format(api_url)
             self.log.error(message)
             return False
+        except TypeError:
+            message = 'Unable to read key file {}'.format(self.config['OAUTH_KEY_CERT_FILE'])
+            self.log.error(message)
+            return False
+
 
     def _login_basic(self):
         """"""
