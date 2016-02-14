@@ -95,6 +95,9 @@ class Jira(BotPlugin):
         """Returns a template of the configuration this plugin supports"""
         return CONFIG_TEMPLATE
 
+    def check_configuration(self, configuration):
+        pass
+
     @botcmd(split_args_with=' ')
     def jira_get(self, msg, args):
         """Retrieves issue JSON from JIRA"""
