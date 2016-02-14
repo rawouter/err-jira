@@ -1,0 +1,8 @@
+jira
+oauth2
+requests
+requests-oauthlib
+IPython
+filemagic
+tlslite
+PyCrypto
