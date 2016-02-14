@@ -19,3 +19,9 @@ Requirements
     pip install -r requirements.txt
 
 - [jira](https://github.com/pycontribs/jira "jira")
+
+
+Installation
+----
+
+    !repos install https://github.com/alexanderfahlke/err-jira.git
