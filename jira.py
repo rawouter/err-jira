@@ -142,9 +142,8 @@ class Jira(BotPlugin):
         jira = self.jira_connect
         try:
             issue = jira.issue(issue)
-            response = '{0} created on {1} by {2} ({4}) - {3}'.format(
+            response = '({3}) "{0}"\ncreated by {1} - {2}'.format(
                 issue.fields.summary,
-                issue.fields.created,
                 issue.fields.reporter.displayName,
                 issue.permalink(),
                 issue.fields.status.name
