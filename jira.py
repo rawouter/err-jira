@@ -109,6 +109,9 @@ class Jira(BotPlugin):
             return self.jira_connect
         return None
 
+    def _fix_issue_id(self, issue):
+        return issue
+
     def _check_issue_id(self, msg, issue):
         if issue == '':
             self.send(msg.frm,
@@ -124,7 +127,7 @@ class Jira(BotPlugin):
         """
         Returns the subject of the issue and a link to it.
         """
-        issue = args.pop(0).upper()
+        issue = self._fix_issue_id(args.pop(0).upper())
         if not self._check_issue_id(msg, issue):
             return
         jira = self.jira_connect
@@ -153,6 +156,6 @@ class Jira(BotPlugin):
 
     @botcmd(split_args_with=' ')
     def jira_assign(self, msg, args):
-        """(Re)Assigns an issue to one user"""
+        """(Re)assigns an issue to a given user"""
         """not implemented yet"""
         return "will (re)assign an issue"
