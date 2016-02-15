@@ -12,8 +12,7 @@ CONFIG_TEMPLATE = {'API_URL': "http://jira.example.com",
                    'OAUTH_ACCESS_TOKEN': None,
                    'OAUTH_ACCESS_TOKEN_SECRET': None,
                    'OAUTH_CONSUMER_KEY': None,
-                   'OAUTH_KEY_CERT_FILE': None,
-                   'PROJECTS': ['FOO', 'BAR']}
+                   'OAUTH_KEY_CERT_FILE': None}
 
 try:
     from jira import JIRA, JIRAError
@@ -55,7 +54,6 @@ class Jira(BotPlugin):
     def _login_oauth(self):
         """"""
         api_url = self.config['API_URL']
-
         # TODO(alex) make this check more robust
         if self.config['OAUTH_ACCESS_TOKEN'] is None:
             message = 'oauth configuration not set'
@@ -111,23 +109,50 @@ class Jira(BotPlugin):
             return self.jira_connect
         return None
 
-    @botcmd(split_args_with=' ')
-    def get(self, msg, args):
-        """Retrieves issue JSON from JIRA"""
-        return "here's the content of issue XYZ"
+    def _check_issue_id(self, msg, issue):
+        if issue == '':
+            self.send(msg.frm,
+                      'issue id must be given',
+                      message_type=msg.type,
+                      in_reply_to=msg,
+                      groupchat_nick_reply=True)
+            return False
+        return True
 
     @botcmd(split_args_with=' ')
-    def create(self):
-        """Creates a new JIRA issue"""
-        """not implemented yet"""
-        return "successfully created issue XYZ"
+    def jira(self, msg, args):
+        """
+        Returns the subject of the issue and a link to it.
+        """
+        issue = args.pop(0).upper()
+        if not self._check_issue_id(msg, issue):
+            return
+        jira = self.jira_connect
+        try:
+            issue = jira.issue(issue)
+            response = '{0} created on {1} by {2} ({4}) - {3}'.format(
+                issue.fields.summary,
+                issue.fields.created,
+                issue.fields.reporter.displayName,
+                issue.permalink(),
+                issue.fields.status.name
+            )
+        except JIRAError:
+            response = 'issue {0} not found.'.format(issue)
+        self.send(msg.frm,
+                  response,
+                  message_type=msg.type,
+                  in_reply_to=msg,
+                  groupchat_nick_reply=True)
 
     @botcmd(split_args_with=' ')
-    def assign(self, msg, args):
-        """Retrieves issue JSON from JIRA"""
+    def jira_create(self):
+        """Creates a new issue"""
         """not implemented yet"""
-        return "assigned to user xyz"
+        return "will create an issue"
 
-    def callback_message(self, conn, mess):
-        """A callback which responds to mentions of JIRA issues"""
+    @botcmd(split_args_with=' ')
+    def jira_assign(self, msg, args):
+        """(Re)Assigns an issue to one user"""
         """not implemented yet"""
+        return "will (re)assign an issue"
