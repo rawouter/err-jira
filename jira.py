@@ -135,7 +135,7 @@ class Jira(BotPlugin):
     @botcmd(split_args_with=' ')
     def jira(self, msg, args):
         """Returns the subject of the issue and a link to it."""
-        issue = self._verify_issue_id(self, msg, args.pop(0))
+        issue = self._verify_issue_id(msg, args.pop(0))
         if issue is '':
             return
         jira = self.jira_connect
