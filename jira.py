@@ -3,6 +3,7 @@ from errbot import BotPlugin
 from errbot import botcmd
 from itertools import chain
 import logging
+import re
 
 log = logging.getLogger(name='errbot.plugins.Jira')
 
@@ -109,26 +110,33 @@ class Jira(BotPlugin):
             return self.jira_connect
         return None
 
-    def _fix_issue_id(self, issue):
-        return issue
-
-    def _check_issue_id(self, msg, issue):
+    def _verify_issue_id(self, msg, issue):
         if issue == '':
             self.send(msg.frm,
-                      'issue id must be given',
+                      'issue id cannot be empty',
                       message_type=msg.type,
                       in_reply_to=msg,
                       groupchat_nick_reply=True)
-            return False
-        return True
+            return ''
+        """"valid issue id patterns (case insensitve):
+            \w+\d+    (eg: ISSUE1234 or issue1234)
+            \w+\-\d+  (eg: ISSUE-1234 or issue-1234)
+        """
+        pattern = re.compile("\w+\d+|\w+\-\d+")
+        if pattern.match(issue):
+            return issue.upper()
+        self.send(msg.frm,
+                  'issue id format incorrect',
+                  message_type=msg.type,
+                  in_reply_to=msg,
+                  groupchat_nick_reply=True)
+        return ''
 
     @botcmd(split_args_with=' ')
     def jira(self, msg, args):
-        """
-        Returns the subject of the issue and a link to it.
-        """
-        issue = self._fix_issue_id(args.pop(0).upper())
-        if not self._check_issue_id(msg, issue):
+        """Returns the subject of the issue and a link to it."""
+        issue = self._verify_issue_id(args.pop(0))
+        if issue is '':
             return
         jira = self.jira_connect
         try:
