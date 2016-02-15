@@ -24,6 +24,22 @@ except ImportError:
 class Jira(BotPlugin):
     """An errbot plugin for working with Atlassian JIRA"""
 
+    def configure(self, configuration):
+        if configuration is not None and configuration != {}:
+            config = dict(chain(CONFIG_TEMPLATE.items(),
+                                configuration.items()))
+        else:
+            config = CONFIG_TEMPLATE
+        super(Jira, self).configure(config)
+
+    def check_configuration(self, configuration):
+        # TODO(alex) do some validation here!
+        pass
+
+    def get_configuration_template(self):
+        """Returns a template of the configuration this plugin supports"""
+        return CONFIG_TEMPLATE
+
     def activate(self):
         if self.config is None:
             # Do not activate the plugin until it is configured
@@ -69,7 +85,6 @@ class Jira(BotPlugin):
             self.log.error(message)
             return False
 
-
     def _login_basic(self):
         """"""
         api_url = self.config['API_URL']
@@ -96,35 +111,19 @@ class Jira(BotPlugin):
             return self.jira_connect
         return None
 
-    def configure(self, configuration):
-        if configuration is not None and configuration != {}:
-            config = dict(chain(CONFIG_TEMPLATE.items(),
-                                configuration.items()))
-        else:
-            config = CONFIG_TEMPLATE
-        super(Jira, self).configure(config)
-
-    def get_configuration_template(self):
-        """Returns a template of the configuration this plugin supports"""
-        return CONFIG_TEMPLATE
-
-    def check_configuration(self, configuration):
-        # TODO(alex) do some validation here!
-        pass
-
     @botcmd(split_args_with=' ')
-    def jira_get(self, msg, args):
+    def get(self, msg, args):
         """Retrieves issue JSON from JIRA"""
         return "here's the content of issue XYZ"
 
     @botcmd(split_args_with=' ')
-    def jira_create(self):
+    def create(self):
         """Creates a new JIRA issue"""
         """not implemented yet"""
         return "successfully created issue XYZ"
 
     @botcmd(split_args_with=' ')
-    def jira_assign(self, msg, args):
+    def assign(self, msg, args):
         """Retrieves issue JSON from JIRA"""
         """not implemented yet"""
         return "assigned to user xyz"
