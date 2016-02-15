@@ -118,13 +118,14 @@ class Jira(BotPlugin):
                       in_reply_to=msg,
                       groupchat_nick_reply=True)
             return ''
-        """"valid issue id patterns (case insensitve):
-            \w+\d+    (eg: ISSUE1234 or issue1234)
-            \w+\-\d+  (eg: ISSUE-1234 or issue-1234)
-        """
-        pattern = re.compile("\w+\d+|\w+\-\d+")
-        if pattern.match(issue):
+        # check format is like "issue-1234"
+        match = re.match('([^\W\d_]+\-\d+)', issue, re.UNICODE)
+        if match:
             return issue.upper()
+        # check format is like "issue1234" and fix it
+        match = re.match('([^\W\d_]+)(\d+)', issue, re.UNICODE)
+        if match:
+            return match.group(1).upper() + '-' + match.group(2)
         self.send(msg.frm,
                   'issue id format incorrect',
                   message_type=msg.type,
