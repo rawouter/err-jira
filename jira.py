@@ -169,7 +169,7 @@ class Jira(BotPlugin):
         """not implemented yet"""
         return "will (re)assign an issue"
 
-    def callback_message(self, conn, mess):
+    def callback_message(self, mess):
         """A callback which responds to mention of JIRA issues"""
         if self.config:
             matches = []
