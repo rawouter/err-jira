@@ -158,7 +158,7 @@ class Jira(BotPlugin):
                   groupchat_nick_reply=True)
 
     @botcmd(split_args_with=' ')
-    def jira_create(self):
+    def jira_create(self, msg, args):
         """Creates a new issue"""
         """not implemented yet"""
         return "will create an issue"
