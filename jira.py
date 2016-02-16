@@ -186,7 +186,7 @@ class Jira(BotPlugin):
                               message_type=msg.type,
                               in_reply_to=msg,
                               groupchat_nick_reply=True)
-            elif:
+            else:
                 response = 'nothing found'
                 self.send(msg.frm,
                           response,
