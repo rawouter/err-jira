@@ -118,14 +118,23 @@ class Jira(BotPlugin):
                       in_reply_to=msg,
                       groupchat_nick_reply=True)
             return ''
+        matches = []
+        regexes = []
+        regexes.append(r'([^\W\d_]+)\-(\d+)')  # issue-1234
+        regexes.append(r'([^\W\d_]+)(\d+)')    # issue1234
+        for regex in regexes:
+            matches.extend(re.findall(regex, msg.body, flags=re.IGNORECASE | re.UNICODE))
+        if matches:
+            for match in set(matches):
+                return match.group(1).upper() + '-' + match.group(2)
         # check format is like "issue-1234"
-        match = re.match('([^\W\d_]+\-\d+)', issue, re.UNICODE)
-        if match:
-            return issue.upper()
+        #match = re.match('([^\W\d_]+\-\d+)', issue, re.UNICODE)
+        #if match:
+        #    return issue.upper()
         # check format is like "issue1234" and fix it
-        match = re.match('([^\W\d_]+)(\d+)', issue, re.UNICODE)
-        if match:
-            return match.group(1).upper() + '-' + match.group(2)
+        #match = re.match('([^\W\d_]+)(\d+)', issue, re.UNICODE)
+        #if match:
+        #    return match.group(1).upper() + '-' + match.group(2)
         self.send(msg.frm,
                   'issue id format incorrect',
                   message_type=msg.type,
@@ -186,10 +195,3 @@ class Jira(BotPlugin):
                               message_type=msg.type,
                               in_reply_to=msg,
                               groupchat_nick_reply=True)
-            else:
-                response = 'nothing found'
-                self.send(msg.frm,
-                          response,
-                          message_type=msg.type,
-                          in_reply_to=msg,
-                          groupchat_nick_reply=True)
