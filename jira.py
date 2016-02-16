@@ -168,3 +168,28 @@ class Jira(BotPlugin):
         """(Re)assigns an issue to a given user"""
         """not implemented yet"""
         return "will (re)assign an issue"
+
+    def callback_message(self, conn, mess):
+        """A callback which responds to mention of JIRA issues"""
+        if self.config:
+            matches = []
+            regexes = []
+            regexes.append(r'([^\W\d_]+\-\d+)')
+            regexes.append(r'([^\W\d_]+)(\d+)')
+            for regex in regexes:
+                matches.extend(re.findall(regex, mess.getBody(), flags=re.IGNORECASE | re.UNICODE))
+            if matches:
+                for match in set(matches):
+                    response = "found an issue id (%)" % match
+                    self.send(msg.frm,
+                              response,
+                              message_type=msg.type,
+                              in_reply_to=msg,
+                              groupchat_nick_reply=True)
+            elif:
+                response = 'nothing found'
+                self.send(msg.frm,
+                          response,
+                          message_type=msg.type,
+                          in_reply_to=msg,
+                          groupchat_nick_reply=True)
