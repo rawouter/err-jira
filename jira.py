@@ -174,7 +174,7 @@ class Jira(BotPlugin):
         if self.config:
             matches = []
             regexes = []
-            regexes.append(r'([^\W\d_]+\-\d+)')
+            regexes.append(r'([^\W\d_]+)\-(\d+)')
             regexes.append(r'([^\W\d_]+)(\d+)')
             for regex in regexes:
                 matches.extend(re.findall(regex, msg.body, flags=re.IGNORECASE | re.UNICODE))
