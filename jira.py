@@ -169,7 +169,7 @@ class Jira(BotPlugin):
         """not implemented yet"""
         return "will (re)assign an issue"
 
-    def callback_message(self, mess):
+    def callback_message(self, msg):
         """A callback which responds to mention of JIRA issues"""
         if self.config:
             matches = []
@@ -177,7 +177,7 @@ class Jira(BotPlugin):
             regexes.append(r'([^\W\d_]+\-\d+)')
             regexes.append(r'([^\W\d_]+)(\d+)')
             for regex in regexes:
-                matches.extend(re.findall(regex, mess.getBody(), flags=re.IGNORECASE | re.UNICODE))
+                matches.extend(re.findall(regex, msg, flags=re.IGNORECASE | re.UNICODE))
             if matches:
                 for match in set(matches):
                     response = "found an issue id (%)" % match
