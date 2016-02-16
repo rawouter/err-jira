@@ -120,21 +120,13 @@ class Jira(BotPlugin):
             return ''
         matches = []
         regexes = []
-        regexes.append(r'([^\W\d_]+)\-(\d+)')  # issue-1234
-        regexes.append(r'([^\W\d_]+)(\d+)')    # issue1234
+        regexes.append(r'([^\W\d_]+)\-(\d+)')  # e.g.: issue-1234
+        regexes.append(r'([^\W\d_]+)(\d+)')    # e.g.: issue1234
         for regex in regexes:
-            matches.extend(re.findall(regex, msg.body, flags=re.IGNORECASE | re.UNICODE))
+            matches.extend(re.findall(regex, msg.body, flags=re.I | re.U))
         if matches:
             for match in set(matches):
                 return match[0].upper() + '-' + match[1]
-        # check format is like "issue-1234"
-        #match = re.match('([^\W\d_]+\-\d+)', issue, re.UNICODE)
-        #if match:
-        #    return issue.upper()
-        # check format is like "issue1234" and fix it
-        #match = re.match('([^\W\d_]+)(\d+)', issue, re.UNICODE)
-        #if match:
-        #    return match.group(1).upper() + '-' + match.group(2)
         self.send(msg.frm,
                   'issue id format incorrect',
                   message_type=msg.type,
@@ -152,11 +144,11 @@ class Jira(BotPlugin):
         try:
             issue = jira.issue(issue)
             response = '({4}) "{0}" (by {2})\nassigned to {1} - {3}'.format(
-                issue.fields.summary,               # 0
-                issue.fields.assignee.displayName,  # 1
-                issue.fields.reporter.displayName,  # 2
-                issue.permalink(),                  # 3
-                issue.fields.status.name            # 4
+                issue.fields.summary,
+                issue.fields.assignee.displayName,
+                issue.fields.reporter.displayName,
+                issue.permalink(),
+                issue.fields.status.name
             )
         except JIRAError:
             response = 'issue {0} not found.'.format(issue)
@@ -181,17 +173,4 @@ class Jira(BotPlugin):
     def callback_message(self, msg):
         """A callback which responds to mention of JIRA issues"""
         if self.config:
-            matches = []
-            regexes = []
-            regexes.append(r'([^\W\d_]+)\-(\d+)')
-            regexes.append(r'([^\W\d_]+)(\d+)')
-            for regex in regexes:
-                matches.extend(re.findall(regex, msg.body, flags=re.IGNORECASE | re.UNICODE))
-            if matches:
-                for match in set(matches):
-                    response = 'found an issue id ({0})'.format(match)
-                    self.send(msg.frm,
-                              response,
-                              message_type=msg.type,
-                              in_reply_to=msg,
-                              groupchat_nick_reply=True)
+            """not implemented yet"""
