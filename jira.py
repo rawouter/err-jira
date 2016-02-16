@@ -177,7 +177,7 @@ class Jira(BotPlugin):
             regexes.append(r'([^\W\d_]+\-\d+)')
             regexes.append(r'([^\W\d_]+)(\d+)')
             for regex in regexes:
-                matches.extend(re.findall(regex, msg.body(), flags=re.IGNORECASE | re.UNICODE))
+                matches.extend(re.findall(regex, msg.body, flags=re.IGNORECASE | re.UNICODE))
             if matches:
                 for match in set(matches):
                     response = "found an issue id (%)" % match
