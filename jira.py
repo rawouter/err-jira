@@ -126,7 +126,7 @@ class Jira(BotPlugin):
             matches.extend(re.findall(regex, msg.body, flags=re.IGNORECASE | re.UNICODE))
         if matches:
             for match in set(matches):
-                return match.group(1).upper() + '-' + match.group(2)
+                return match[0].upper() + '-' + match[1]
         # check format is like "issue-1234"
         #match = re.match('([^\W\d_]+\-\d+)', issue, re.UNICODE)
         #if match:
