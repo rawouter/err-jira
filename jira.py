@@ -180,7 +180,7 @@ class Jira(BotPlugin):
                 matches.extend(re.findall(regex, msg.body, flags=re.IGNORECASE | re.UNICODE))
             if matches:
                 for match in set(matches):
-                    response = "found an issue id (%)" % match
+                    response = 'found an issue id ({0})'.format(match)
                     self.send(msg.frm,
                               response,
                               message_type=msg.type,
