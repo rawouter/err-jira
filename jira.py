@@ -142,11 +142,12 @@ class Jira(BotPlugin):
         jira = self.jira_connect
         try:
             issue = jira.issue(issue)
-            response = '({3}) "{0}"\ncreated by {1} - {2}'.format(
-                issue.fields.summary,
-                issue.fields.reporter.displayName,
-                issue.permalink(),
-                issue.fields.status.name
+            response = '({4}) "{0}"\nassigned to: {1}\ncreated by: {2} - {3}'.format(
+                issue.fields.summary,               # 0
+                issue.fields.assignee.displayName,  # 1
+                issue.fields.reporter.displayName,  # 2
+                issue.permalink(),                  # 3
+                issue.fields.status.name            # 4
             )
         except JIRAError:
             response = 'issue {0} not found.'.format(issue)
