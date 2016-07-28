@@ -2,10 +2,7 @@
 from errbot import BotPlugin
 from errbot import botcmd
 from itertools import chain
-import logging
 import re
-
-log = logging.getLogger(name='errbot.plugins.Jira')
 
 CONFIG_TEMPLATE = {'API_URL': "http://jira.example.com",
                    'USERNAME': 'errbot',
@@ -18,7 +15,7 @@ CONFIG_TEMPLATE = {'API_URL': "http://jira.example.com",
 try:
     from jira import JIRA, JIRAError
 except ImportError:
-    log.error("Please install 'jira' python package")
+    raise("Please install 'jira' python package")
 
 
 class Jira(BotPlugin):
