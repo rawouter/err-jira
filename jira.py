@@ -149,20 +149,24 @@ class Jira(BotPlugin):
         jira = self.jira_connect
         try:
             issue = jira.issue(issue)
-            response = '({4}) "{0}" (by {2})\nassigned to {1} - {3}'.format(
-                issue.fields.summary,
-                issue.fields.assignee.displayName,
-                issue.fields.reporter.displayName,
-                issue.permalink(),
-                issue.fields.status.name
+            self.send_card(
+                title= issue.fields.summary,
+                summary = 'Jira issue {}:'.format(issue),
+                link=issue.permalink(),
+                body=issue.fields.status.name,
+                fields=(
+                    ('Assignee',issue.fields.assignee.displayName),
+                    ('Status',issue.fields.priority.name),
+                ),
+                color='red',
+                in_reply_to=msg
             )
         except JIRAError:
-            response = 'issue {0} not found.'.format(issue)
-        self.send(msg.frm,
-                  response,
-                  message_type=msg.type,
-                  in_reply_to=msg,
-                  groupchat_nick_reply=True)
+            self.send(msg.frm,
+                      'Issue {} not found!'.format(issue),
+                      message_type=msg.type,
+                      in_reply_to=msg,
+                      groupchat_nick_reply=True)
 
     @botcmd(split_args_with=' ')
     def jira_create(self, msg, args):
