@@ -52,6 +52,8 @@ class Jira(BotPlugin):
         self.jira_connect = self._login()
         if self.jira_connect:
             super().activate()
+        else:
+            self.log.error('Failed to activate Jira plugin, maybe check the configuration')
 
     def _login_oauth(self):
         """
@@ -62,7 +64,7 @@ class Jira(BotPlugin):
         if self.config['OAUTH_ACCESS_TOKEN'] is None:
             message = 'oauth configuration not set'
             self.log.info(message)
-            return False
+            return None
 
         key_cert_data = None
         cert_file = self.config['OAUTH_KEY_CERT_FILE']
