@@ -22,7 +22,9 @@ except ImportError:
 
 
 class Jira(BotPlugin):
-    """An errbot plugin for working with Atlassian JIRA"""
+    """
+    An errbot plugin for working with Atlassian JIRA
+    """
 
     def configure(self, configuration):
         if configuration is not None and configuration != {}:
@@ -37,7 +39,9 @@ class Jira(BotPlugin):
         pass
 
     def get_configuration_template(self):
-        """Returns a template of the configuration this plugin supports"""
+        """
+        Returns a template of the configuration this plugin supports
+        """
         return CONFIG_TEMPLATE
 
     def activate(self):
@@ -53,7 +57,9 @@ class Jira(BotPlugin):
             super().activate()
 
     def _login_oauth(self):
-        """"""
+        """
+        Login to Jira with OAUTH
+        """
         api_url = self.config['API_URL']
         # TODO(alex) make this check more robust
         if self.config['OAUTH_ACCESS_TOKEN'] is None:
@@ -78,14 +84,16 @@ class Jira(BotPlugin):
         except JIRAError:
             message = 'Unable to login to {} via oauth'.format(api_url)
             self.log.error(message)
-            return False
+            return None
         except TypeError:
             message = 'Unable to read key file {}'.format(cert_file)
             self.log.error(message)
-            return False
+            return None
 
     def _login_basic(self):
-        """"""
+        """
+        Login to Jira with basic auth
+        """
         api_url = self.config['API_URL']
         username = self.config['USERNAME']
         password = self.config['PASSWORD']
@@ -96,19 +104,16 @@ class Jira(BotPlugin):
         except JIRAError:
             message = 'Unable to login to {} via basic auth'.format(api_url)
             self.log.error(message)
-            return False
+            return None
 
     def _login(self):
-        """"""
-        self.jira_connect = None
+        """
+        Login to Jira
+        """
         self.jira_connect = self._login_oauth()
-        if self.jira_connect:
-            return self.jira_connect
-        self.jira_connect = None
-        self.jira_connect = self._login_basic()
-        if self.jira_connect:
-            return self.jira_connect
-        return None
+        if self.jira_connect is None:
+            self.jira_connect = self._login_basic()
+        return self.jira_connect
 
     def _verify_issue_id(self, msg, issue):
         if issue == '':
@@ -136,7 +141,9 @@ class Jira(BotPlugin):
 
     @botcmd(split_args_with=' ')
     def jira(self, msg, args):
-        """Returns the subject of the issue and a link to it."""
+        """
+        Returns the subject of the issue and a link to it.
+        """
         issue = self._verify_issue_id(msg, args.pop(0))
         if issue is '':
             return
@@ -160,17 +167,16 @@ class Jira(BotPlugin):
 
     @botcmd(split_args_with=' ')
     def jira_create(self, msg, args):
-        """Creates a new issue"""
-        """not implemented yet"""
-        return "will create an issue"
+        """
+        Creates a new issue
+        not implemented yet
+        """
+        return "Not implemented"
 
     @botcmd(split_args_with=' ')
     def jira_assign(self, msg, args):
-        """(Re)assigns an issue to a given user"""
-        """not implemented yet"""
-        return "will (re)assign an issue"
-
-    def callback_message(self, msg):
-        """A callback which responds to mention of JIRA issues"""
-        if self.config:
-            """not implemented yet"""
+        """
+        (Re)assigns an issue to a given user
+        not implemented yet
+        """
+        return "Not implemented"
