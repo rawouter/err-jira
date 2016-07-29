@@ -4,7 +4,7 @@ from errbot import botcmd
 from itertools import chain
 import re
 
-CONFIG_TEMPLATE = {'API_URL': "http://jira.example.com",
+CONFIG_TEMPLATE = {'API_URL': 'http://jira.example.com',
                    'USERNAME': 'errbot',
                    'PASSWORD': 'password',
                    'OAUTH_ACCESS_TOKEN': None,
@@ -22,38 +22,6 @@ class Jira(BotPlugin):
     """
     An errbot plugin for working with Atlassian JIRA
     """
-
-    def configure(self, configuration):
-        if configuration is not None and configuration != {}:
-            config = dict(chain(CONFIG_TEMPLATE.items(),
-                                configuration.items()))
-        else:
-            config = CONFIG_TEMPLATE
-        super(Jira, self).configure(config)
-
-    def check_configuration(self, configuration):
-        # TODO(alex) do some validation here!
-        pass
-
-    def get_configuration_template(self):
-        """
-        Returns a template of the configuration this plugin supports
-        """
-        return CONFIG_TEMPLATE
-
-    def activate(self):
-        if self.config is None:
-            # Do not activate the plugin until it is configured
-            message = 'Jira not configured.'
-            self.log.info(message)
-            self.warn_admins(message)
-            return
-
-        self.jira_connect = self._login()
-        if self.jira_connect:
-            super().activate()
-        else:
-            self.log.error('Failed to activate Jira plugin, maybe check the configuration')
 
     def _login_oauth(self):
         """
@@ -114,6 +82,46 @@ class Jira(BotPlugin):
             self.jira_connect = self._login_basic()
         return self.jira_connect
 
+
+    def activate(self):
+        if self.config is None:
+            # Do not activate the plugin until it is configured
+            message = 'Jira not configured.'
+            self.log.info(message)
+            self.warn_admins(message)
+            return
+
+        self.jira_connect = self._login()
+        if self.jira_connect:
+            super().activate()
+        else:
+            self.log.error('Failed to activate Jira plugin, maybe check the configuration')
+
+    def configure(self, configuration):
+        if configuration is not None and configuration != {}:
+            config = dict(chain(CONFIG_TEMPLATE.items(),
+                                configuration.items()))
+        else:
+            config = CONFIG_TEMPLATE
+        super(Jira, self).configure(config)
+
+    def check_configuration(self, configuration):
+        """
+        Check the plugin config, raise errors
+        """
+        if not configuration.get('API_URL', '').lower().startswith('http'):
+            raise Exception('Config validation failed for API_URL, this does not start with http')
+        if not configuration.get('USERNAME', ''):
+            raise Exception('Config validation failed for USERNAME, seems empty or not set')
+        if not configuration.get('PASSWORD', ''):
+            raise Exception('Config validation failed for PASSWORD, seems empty or not set')
+
+    def get_configuration_template(self):
+        """
+        Returns a template of the configuration this plugin supports
+        """
+        return CONFIG_TEMPLATE
+
     def _verify_issue_id(self, msg, issue):
         if issue == '':
             self.send(msg.frm,
@@ -121,22 +129,15 @@ class Jira(BotPlugin):
                       message_type=msg.type,
                       in_reply_to=msg,
                       groupchat_nick_reply=True)
-            return ''
-        matches = []
-        regexes = []
-        regexes.append(r'([^\W\d_]+)\-(\d+)')  # e.g.: issue-1234
-        regexes.append(r'([^\W\d_]+)(\d+)')    # e.g.: issue1234
-        for regex in regexes:
-            matches.extend(re.findall(regex, msg.body, flags=re.I | re.U))
-        if matches:
-            for match in set(matches):
-                return match[0].upper() + '-' + match[1]
-        self.send(msg.frm,
-                  'issue id format incorrect',
-                  message_type=msg.type,
-                  in_reply_to=msg,
-                  groupchat_nick_reply=True)
-        return ''
+            return None
+        issue = verify_and_generate_issueid(issue)
+        if issue is None:
+            self.send(msg.frm,
+                      'issue id format incorrect',
+                      message_type=msg.type,
+                      in_reply_to=msg,
+                      groupchat_nick_reply=True)
+        return issue
 
     @botcmd(split_args_with=' ')
     def jira(self, msg, args):
@@ -183,3 +184,20 @@ class Jira(BotPlugin):
         not implemented yet
         """
         return "Not implemented"
+
+
+def verify_and_generate_issueid(issueid):
+    """
+    Take a Jira issue ID lowercase, or without a '-' and return a valid Jira issue ID.
+    Return None if issueid can't be transformed
+    """
+    matches = []
+    regexes = []
+    regexes.append(r'([^\w\d_]+)\-(\d+)')  # e.g.: issue-1234
+    regexes.append(r'([^\w\d_]+)(\d+)')    # e.g.: issue1234
+    for regex in regexes:
+        matches.extend(re.findall(regex, issueid, flags=re.i | re.u))
+    if matches:
+        for match in set(matches):
+            return match[0].upper() + '-' + match[1]
+    return None
