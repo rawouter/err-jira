@@ -2,6 +2,9 @@ err-jira
 =========
 
 An errbot plugin for working with Atlassian JIRA.
+Currently implemented:
+- Search for a JiraID
+- Assign issue to valid user
 
 OAuth for JIRA
 ----
@@ -16,14 +19,12 @@ Follow the guides on the JIRA developer pages:
 Requirements
 ----
 
-    pip install -r requirements.txt
-
-- [jira](https://github.com/pycontribs/jira "jira")
-
+See requirements.txt:
+`pip install -r requirements.txt`
 
 Installation
 ----
 
-    /repos install https://github.com/RaphYot/err-jira.git
-    /plugin config Jira {'API_URL': 'http://jira.example.com', 'USERNAME': 'errbot', 'PASSWORD': 'password'}
-    /plugin activate Jira
+/repos install https://github.com/RaphYot/err-jira.git
+/plugin config Jira {'API_URL': 'http://jira.example.com', 'USERNAME': 'errbot', 'PASSWORD': 'password'}
+/plugin activate Jira
