@@ -79,30 +79,28 @@ class Jira(BotPlugin):
         """
         Login to Jira
         """
-        self.jira_connect = self._login_oauth()
-        if self.jira_connect is None:
-            self.jira_connect = self._login_basic()
-        return self.jira_connect
+        self.jira = self._login_oauth()
+        if self.jira is None:
+            self.jira = self._login_basic()
+        return self.jira
 
 
     def activate(self):
         if self.config is None:
-            # Do not activate the plugin until it is configured
             message = 'Jira not configured.'
             self.log.info(message)
             self.warn_admins(message)
             return
 
-        self.jira_connect = self._login()
-        if self.jira_connect:
+        self.jira = self._login()
+        if self.jira:
             super().activate()
         else:
             self.log.error('Failed to activate Jira plugin, maybe check the configuration')
 
     def configure(self, configuration):
         if configuration is not None and configuration != {}:
-            config = dict(chain(CONFIG_TEMPLATE.items(),
-                                configuration.items()))
+            config = dict(chain(CONFIG_TEMPLATE.items(), configuration.items()))
         else:
             config = CONFIG_TEMPLATE
         super(Jira, self).configure(config)
@@ -125,17 +123,19 @@ class Jira(BotPlugin):
         return CONFIG_TEMPLATE
 
     def _send_msg(self, msg, message):
-        self.send(msg.frm,
-                  message,
-                  message_type=msg.type,
-                  in_reply_to=msg,
-                  groupchat_nick_reply=True)
+        self.send(
+            msg.frm,
+            message,
+            message_type=msg.type,
+            in_reply_to=msg,
+            groupchat_nick_reply=True
+        )
 
     def _find_one_user(self, msg, userstring):
         """
         Return one jira user, if zero or more than one user found, return None and send a message.
         """
-        users = self.jira_connect.search_assignable_users_for_projects(userstring, self.config['PROJECTS'])
+        users = self.jira.search_assignable_users_for_projects(userstring, self.config['PROJECTS'])
         if len(users) == 0:
             self._send_msg(msg, 'No corresponding user found: {}'.format(userstring))
             user = None
@@ -147,20 +147,12 @@ class Jira(BotPlugin):
         return user
 
     def _verify_issue_id(self, msg, issue):
-        if issue == '':
-            self.send(msg.frm,
-                      'issue id cannot be empty',
-                      message_type=msg.type,
-                      in_reply_to=msg,
-                      groupchat_nick_reply=True)
-            return None
+        """
+        Verify the issue ID is valid, if not return None and send a message to the user.
+        """
         issue = verify_and_generate_issueid(issue)
         if issue is None:
-            self.send(msg.frm,
-                      'issue id format incorrect',
-                      message_type=msg.type,
-                      in_reply_to=msg,
-                      groupchat_nick_reply=True)
+            self._send_msg(msg, 'Issue id format incorrect')
         return issue
 
     @botcmd(split_args_with=' ')
@@ -171,9 +163,8 @@ class Jira(BotPlugin):
         issue = self._verify_issue_id(msg, args.pop(0))
         if issue is None:
             return
-        jira = self.jira_connect
         try:
-            issue = jira.issue(issue)
+            issue = self.jira.issue(issue)
             self.send_card(
                 title= issue.fields.summary,
                 summary = 'Jira issue {}:'.format(issue),
@@ -187,7 +178,7 @@ class Jira(BotPlugin):
                 in_reply_to=msg
             )
         except JIRAError:
-            self._send_msg(msg, 'Issue {} not found!'.format(issue))
+            self._send_msg(msg, 'Error communicating with Jira, issue {} does not exist?'.format(issue))
 
     @botcmd(split_args_with=' ')
     def jira_create(self, msg, args):
@@ -206,14 +197,13 @@ class Jira(BotPlugin):
         if len(args) != 2:
             self._send_msg(msg, 'Usage: jira assign <issue_id> <username>')
             return
-        jira = self.jira_connect
         issueid = self._verify_issue_id(msg, args[0])
         if issueid is None:
             return
         user = self._find_one_user(msg, args[1])
         try:
-            issue = jira.issue(issueid)
-            jira.assign_issue(issue, user.name)
+            issue = self.jira.issue(issueid)
+            self.jira.assign_issue(issue, user.name)
             self._send_msg(msg, 'Issue {} assigned to {}'.format(issue, user))
         except JIRAError:
             self._send_msg(msg, 'Issue {} not found!'.format(issue))

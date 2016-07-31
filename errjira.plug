@@ -1,6 +1,6 @@
 [Core]
 Name = Jira
-Module = jira
+Module = errjira
 
 [Python]
 Version = 3
