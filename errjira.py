@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from errbot import BotPlugin, CommandError
-from errbot import botcmd, arg_botcmd
+from errbot import botcmd, arg_botcmd, re_botcmd
 from itertools import chain
 import re
 
@@ -154,6 +154,24 @@ class Jira(BotPlugin):
             raise CommandError('Issue id format incorrect')
         return issue
 
+    def _verify_transition_for_id(self, issueid, tname):
+        """
+        Ensure that a transition `tname` (case insensitive) is valid for `issueid` and return the transition
+        ID that can be used to transition the issue.
+        """
+        issue = self._verify_issue_id(issueid)
+        try:
+            issue = self.jira.issue(issueid)
+        except JIRAError:
+            raise CommandError('Error connecting to Jira, issue {} might not exist'.format(issueid))
+        transitions = self.jira.transitions(issue)
+        res = {}
+        for t in transitions:
+            res[t['name'].lower()] = t['id']
+        if tname.lower() not in res.keys():
+            raise CommandError('Transition {} does not exist, available transitions: {}'.format(tname, '\n\t- '.join(res.keys())))
+        return res[tname.lower()]
+
     @botcmd(split_args_with=' ')
     def jira_get(self, msg, args):
         """
@@ -175,7 +193,7 @@ class Jira(BotPlugin):
                 in_reply_to=msg
             )
         except JIRAError:
-            self._send_msg(msg, 'Error communicating with Jira, issue {} does not exist?'.format(issue))
+            raise CommandError('Error communicating with Jira, issue {} does not exist?'.format(issue))
 
     @arg_botcmd('summary', type=str, nargs='+', help='Can end with @username to assign the task to `username`')
     @arg_botcmd('-t', dest='itype', type=str, default='Task', help='Task name')
@@ -202,25 +220,6 @@ class Jira(BotPlugin):
             self.jira_get(msg, [issue.key])
         except JIRAError:
             self._send_msg(msg, 'Something went wrong when calling Jira API, please ensure all fields are valid')
-
-
-    def _verify_transition_for_id(self, issueid, tname):
-        """
-        Ensure that a transition `tname` (case insensitive) is valid for `issueid` and return the transition
-        ID that can be used to transition the issue.
-        """
-        issue = self._verify_issue_id(issueid)
-        try:
-            issue = self.jira.issue(issueid)
-        except JIRAError:
-            raise CommandError('Error connecting to Jira, issue {} might not exist'.format(issueid))
-        transitions = self.jira.transitions(issue)
-        res = {}
-        for t in transitions:
-            res[t['name'].lower()] = t['id']
-        if tname.lower() not in res.keys():
-            raise CommandError('Transition {} does not exist, available transitions: {}'.format(tname, '\n\t- '.join(res.keys())))
-        return res[tname.lower()]
 
     @botcmd(split_args_with=None)
     def jira_transition(self, msg, args):
@@ -249,6 +248,15 @@ class Jira(BotPlugin):
             self._send_msg(msg, 'Issue {} assigned to {}'.format(issue, user))
         except JIRAError:
             raise CommandError('Error communicating with Jira, issue {} does not exist?'.format(issue))
+
+    @re_botcmd(pattern=r"(^| )([^\W\d_]+)\-(\d+)( |$)", prefixed=False, flags=re.IGNORECASE)
+    def listen_for_jira_id(self, msg, match):
+        """Talk of cookies gives Errbot a craving..."""
+        try:
+            self.jira_get(msg, ['-'.join(match.groups()[1:3]).upper()])
+        except CommandError:
+            pass
+
 
 def verify_and_generate_issueid(issueid):
     """
