@@ -8,7 +8,7 @@ CONFIG_TEMPLATE = {
     'API_URL': 'http://jira.example.com',
     'USERNAME': 'errbot',
     'PASSWORD': 'password',
-    'PROJECTS': ['FOO', 'BAR'],
+    'PROJECT': 'FOO',
     'OAUTH_ACCESS_TOKEN': None,
     'OAUTH_ACCESS_TOKEN_SECRET': None,
     'OAUTH_CONSUMER_KEY': None,

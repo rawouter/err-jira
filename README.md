@@ -26,5 +26,5 @@ Installation
 ----
 
 /repos install https://github.com/RaphYot/err-jira.git
-/plugin config Jira {'API_URL': 'http://jira.example.com', 'USERNAME': 'errbot', 'PASSWORD': 'password'}
+/plugin config Jira {'API_URL': 'http://jira.example.com', 'USERNAME': 'errbot', 'PASSWORD': 'password', 'PROJECT': 'FOO'}
 /plugin activate Jira
