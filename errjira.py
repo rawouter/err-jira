@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from errbot import BotPlugin
-from errbot import botcmd
+from errbot import BotPlugin, CommandError
+from errbot import botcmd, arg_botcmd
 from itertools import chain
 import re
 
@@ -133,36 +133,33 @@ class Jira(BotPlugin):
 
     def _find_one_user(self, msg, userstring):
         """
-        Return one jira user, if zero or more than one user found, return None and send a message.
+        Return one jira user corresponding to userstring.
+        Stop the execution by raising a jira.CommandError if none or too many users found.
         """
-        users = self.jira.search_assignable_users_for_projects(userstring, self.config['PROJECTS'])
+        users = self.jira.search_assignable_users_for_projects(userstring, self.config['PROJECT'])
         if len(users) == 0:
-            self._send_msg(msg, 'No corresponding user found: {}'.format(userstring))
-            user = None
+            raise CommandError('No corresponding user found: {}'.format(userstring))
         elif len(users) > 1:
-            self._send_msg(msg, 'Too many user found: {}'.format(', '.join([u.name for u in users])))
-            user = None
+            raise CommandError('Too many user found: {}'.format(', '.join([u.name for u in users])))
         else:
             user = users[0]
         return user
 
     def _verify_issue_id(self, msg, issue):
         """
-        Verify the issue ID is valid, if not return None and send a message to the user.
+        Verify the issue ID is valid, if not raise a jira.CommandError and stop the execution.
         """
         issue = verify_and_generate_issueid(issue)
         if issue is None:
-            self._send_msg(msg, 'Issue id format incorrect')
+            raise CommandError('Issue id format incorrect')
         return issue
 
     @botcmd(split_args_with=' ')
-    def jira(self, msg, args):
+    def jira_get(self, msg, args):
         """
-        Returns the subject of the issue and a link to it.
+        Describe a ticket. Usage: jira get <issue_id>
         """
         issue = self._verify_issue_id(msg, args.pop(0))
-        if issue is None:
-            return
         try:
             issue = self.jira.issue(issue)
             self.send_card(
@@ -180,33 +177,43 @@ class Jira(BotPlugin):
         except JIRAError:
             self._send_msg(msg, 'Error communicating with Jira, issue {} does not exist?'.format(issue))
 
-    @botcmd(split_args_with=' ')
-    def jira_create(self, msg, args):
+    @arg_botcmd('summary', type=str)
+    @arg_botcmd('-t', dest='type', type=str, default="Task")
+    @arg_botcmd('-p', dest='priority', type=str)
+    @arg_botcmd('-d', dest='description', type=str)
+    def jira_create(self, msg, summary, type=None, priority=None, description=None):
         """
-        Creates a new issue
-        not implemented yet
+        Creates a new issue. Usage: jira create <summary> [@user] [-t <type>] [-p <priority>] [-d <description>]
         """
+        if not summary:
+            raise CommandError('You did not provide a summary.\nUsage: jira create <summary> [@user] [-t <type>] [-p <priority>] [-d <description>]')
+        summary, username = get_username_from_summary(summary)
+        self.jira.createmeta()
+        #issue_dict = {
+        #    'project': {'id': 123},
+        #    'summary': 'New issue from jira-python',
+        #    'description': 'Look into this one',
+        #    'issuetype': {'name': 'Bug'},
+        #}
+        #new_issue = self.jira.create_issue(fields=issue_dict)
+
         return "Not implemented"
 
     @botcmd(split_args_with=None)
     def jira_assign(self, msg, args):
         """
-        (Re)assigns an issue to a given user
-        Usage: jira assign <issue_id> <username>
+        Assign a ticket. Usage: jira assign <issue_id> <username>
         """
         if len(args) != 2:
-            self._send_msg(msg, 'Usage: jira assign <issue_id> <username>')
-            return
+            raise CommandError('Wrong argument number.\nUsage: jira assign <issue_id> <username>')
         issueid = self._verify_issue_id(msg, args[0])
-        if issueid is None:
-            return
         user = self._find_one_user(msg, args[1])
         try:
             issue = self.jira.issue(issueid)
             self.jira.assign_issue(issue, user.name)
             self._send_msg(msg, 'Issue {} assigned to {}'.format(issue, user))
         except JIRAError:
-            self._send_msg(msg, 'Issue {} not found!'.format(issue))
+            raise CommandError('Error communicating with Jira, issue {} does not exist?'.format(issue))
 
 def verify_and_generate_issueid(issueid):
     """
