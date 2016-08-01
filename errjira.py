@@ -177,27 +177,32 @@ class Jira(BotPlugin):
         except JIRAError:
             self._send_msg(msg, 'Error communicating with Jira, issue {} does not exist?'.format(issue))
 
-    @arg_botcmd('summary', type=str)
-    @arg_botcmd('-t', dest='type', type=str, default="Task")
-    @arg_botcmd('-p', dest='priority', type=str)
-    @arg_botcmd('-d', dest='description', type=str)
-    def jira_create(self, msg, summary, type=None, priority=None, description=None):
+    @arg_botcmd('summary', type=str, nargs='+', help='Can end with @username to assign the task to `username`')
+    @arg_botcmd('-t', dest='itype', type=str, default='Task', help='Task name')
+    @arg_botcmd('-p', dest='priority', default='P3', type=str, help='Priority name')
+    def jira_create(self, msg, summary, itype='Task', priority='P3'):
         """
-        Creates a new issue. Usage: jira create <summary> [@user] [-t <type>] [-p <priority>] [-d <description>]
+        Creates a new issue.
         """
+        summary = ' '.join(summary)
         if not summary:
-            raise CommandError('You did not provide a summary.\nUsage: jira create <summary> [@user] [-t <type>] [-p <priority>] [-d <description>]')
+            raise CommandError('You did not provide a summary.\nUsage: jira create [-t <type>] [-p <priority>] <summary> [@user]')
         summary, username = get_username_from_summary(summary)
-        self.jira.createmeta()
-        #issue_dict = {
-        #    'project': {'id': 123},
-        #    'summary': 'New issue from jira-python',
-        #    'description': 'Look into this one',
-        #    'issuetype': {'name': 'Bug'},
-        #}
-        #new_issue = self.jira.create_issue(fields=issue_dict)
+        user = self._find_one_user(msg, username)
+        try:
+            issue = self.jira.create_issue(
+                project=self.config['PROJECT'],
+                summary=summary,
+                description='Reported by {} in errbot chat'.format(msg.frm.nick),
+                assignee={'name': user.name},
+                issuetype={'name': itype},
+                priority={'name': priority}
+            )
+            self._send_msg(msg, 'Issue {} has been created'.format(issue.key))
+            self.jira_get(msg, [issue.key])
+        except JIRAError:
+            self._send_msg(msg, 'Something went wrong when calling Jira API, please ensure all fields are valid')
 
-        return "Not implemented"
 
     @botcmd(split_args_with=None)
     def jira_assign(self, msg, args):
