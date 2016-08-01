@@ -223,3 +223,12 @@ def verify_and_generate_issueid(issueid):
         for match in set(matches):
             return match[0].upper() + '-' + match[1]
     return None
+
+def get_username_from_summary(summary):
+    """
+    If the summary string ends with `@someone`, return `someone`
+    """
+    lastword = summary.rsplit(None, 1)[-1]
+    if lastword[0] == '@':
+        return summary[:-len(lastword)-1], lastword[1:]
+    return summary, None

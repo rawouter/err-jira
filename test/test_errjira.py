@@ -23,3 +23,10 @@ def test_verify_and_generate_issueid():
     assert errjira.verify_and_generate_issueid('Foo-123') == 'FOO-123'
     assert errjira.verify_and_generate_issueid('FOO-123') == 'FOO-123'
     assert errjira.verify_and_generate_issueid('foo') == None
+
+def test_get_username_from_summary():
+    assert errjira.get_username_from_summary('foo bar') == ('foo bar', None)
+    assert errjira.get_username_from_summary('foo bar me@myself') == ('foo bar me@myself', None)
+    assert errjira.get_username_from_summary('foo @myself') == ('foo', 'myself')
+    assert errjira.get_username_from_summary('foo bar cho @myself') == ('foo bar cho', 'myself')
+    assert errjira.get_username_from_summary('@myself') == ('', 'myself')
