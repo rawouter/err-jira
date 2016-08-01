@@ -145,7 +145,7 @@ class Jira(BotPlugin):
             user = users[0]
         return user
 
-    def _verify_issue_id(self, msg, issue):
+    def _verify_issue_id(self, issue):
         """
         Verify the issue ID is valid, if not raise a jira.CommandError and stop the execution.
         """
@@ -159,7 +159,7 @@ class Jira(BotPlugin):
         """
         Describe a ticket. Usage: jira get <issue_id>
         """
-        issue = self._verify_issue_id(msg, args.pop(0))
+        issue = self._verify_issue_id(args.pop(0))
         try:
             issue = self.jira.issue(issue)
             self.send_card(
@@ -204,6 +204,36 @@ class Jira(BotPlugin):
             self._send_msg(msg, 'Something went wrong when calling Jira API, please ensure all fields are valid')
 
 
+    def _verify_transition_for_id(self, issueid, tname):
+        """
+        Ensure that a transition `tname` (case insensitive) is valid for `issueid` and return the transition
+        ID that can be used to transition the issue.
+        """
+        issue = self._verify_issue_id(issueid)
+        try:
+            issue = self.jira.issue(issueid)
+        except JIRAError:
+            raise CommandError('Error connecting to Jira, issue {} might not exist'.format(issueid))
+        transitions = self.jira.transitions(issue)
+        res = {}
+        for t in transitions:
+            res[t['name'].lower()] = t['id']
+        if tname.lower() not in res.keys():
+            raise CommandError('Transition {} does not exist, available transitions: {}'.format(tname, '\n\t- '.join(res.keys())))
+        return res[tname.lower()]
+
+    @botcmd(split_args_with=None)
+    def jira_transition(self, msg, args):
+        """
+        Transition a ticket. Usage: jira transition <issue_id> <transition_type>
+        """
+        if len(args) != 2:
+            raise CommandError('Wrong argument number.\nUsage: jira transition <issue_id> <transition_type>')
+        issueid = self._verify_issue_id(args[0])
+        transition = self._verify_transition_for_id(issueid, args[1])
+        self.jira.transition_issue(issueid, transition)
+        self.jira_get(msg, [issueid])
+
     @botcmd(split_args_with=None)
     def jira_assign(self, msg, args):
         """
@@ -211,7 +241,7 @@ class Jira(BotPlugin):
         """
         if len(args) != 2:
             raise CommandError('Wrong argument number.\nUsage: jira assign <issue_id> <username>')
-        issueid = self._verify_issue_id(msg, args[0])
+        issueid = self._verify_issue_id(args[0])
         user = self._find_one_user(msg, args[1])
         try:
             issue = self.jira.issue(issueid)

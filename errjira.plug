@@ -6,4 +6,4 @@ Module = errjira
 Version = 3
 
 [Documentation]
-Description = Errbot plugin for JIRA (search, assign, create issues)
+Description = Errbot plugin for JIRA (search, assign, create and transition issues)
