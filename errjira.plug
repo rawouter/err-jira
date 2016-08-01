@@ -3,7 +3,7 @@ Name = Jira
 Module = errjira
 
 [Python]
-Version = 3
+Version = 2+
 
 [Documentation]
 Description = Errbot plugin for JIRA (search, assign, create and transition issues)
