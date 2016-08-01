@@ -94,7 +94,7 @@ class Jira(BotPlugin):
 
         self.jira = self._login()
         if self.jira:
-            super().activate()
+            super(Jira, self).activate()
         else:
             self.log.error('Failed to activate Jira plugin, maybe check the configuration')
 
