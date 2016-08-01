@@ -5,7 +5,7 @@ from itertools import chain
 import re
 
 CONFIG_TEMPLATE = {
-    'API_URL': 'http://jira.example.com',
+    'API_URL': 'http://atlassian.com',
     'USERNAME': 'errbot',
     'PASSWORD': 'password',
     'PROJECT': 'FOO',
