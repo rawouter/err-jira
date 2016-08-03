@@ -28,7 +28,66 @@ Installation
 ----
 
 ```
-  !repos install https://github.com/RaphYot/err-jira.git
-  !plugin config Jira {'API_URL': 'http://jira.example.com', 'USERNAME': 'errbot', 'PASSWORD': 'password', 'PROJECT': 'FOO'}
-  !plugin activate Jira
+!repos install https://github.com/RaphYot/err-jira.git
+!plugin config Jira {'API_URL': 'http://jira.example.com', 'USERNAME': 'errbot', 'PASSWORD': 'password', 'PROJECT': 'FOO'}
+!plugin activate Jira
+```
+
+Feature examples:
+----
+
+```
+ >>> jira create This is an example @raph -p P3
+
+  Jira issue BDBDEV-585:
+
+  This is an example ()
+
+ Open
+┏━━━━━━━━━━━━━━━━━┳━━━━━━━━┓
+┃ Assignee        ┃ Status ┃
+┡━━━━━━━━━━━━━━━━━╇━━━━━━━━┩
+│ Raphael Wxxxxxx │ P3     │
+└─────────────────┴────────┘
+
+ >>> jira assign bdbdev-586 sam
+
+  Issue BDBDEV-586 assigned to Sam Gxxxxx
+
+ >>> what about bdbdev-586? # This bot listen for Jira ID.
+
+  Jira issue BDBDEV-586:
+
+  This is an example ()
+
+ Open
+┏━━━━━━━━━━━━┳━━━━━━━━┓
+┃ Assignee   ┃ Status ┃
+┡━━━━━━━━━━━━╇━━━━━━━━┩
+│ Sam Gxxxxx │ P3     │
+└────────────┴────────┘
+
+ >>> jira transition bdbdev-586 foo
+
+  Transition foo does not exist, available transitions: monitor
+    - open
+    - doing
+    - deploy
+    - test
+    - close
+
+
+ >>> jira transition bdbdev-586 close
+
+ Jira issue BDBDEV-586:
+
+  This is an example ()
+
+ Closed
+┏━━━━━━━━━━━━┳━━━━━━━━┓
+┃ Assignee   ┃ Status ┃
+┡━━━━━━━━━━━━╇━━━━━━━━┩
+│ Sam Gxxxxx │ P3     │
+└────────────┴────────┘
+
 ```
