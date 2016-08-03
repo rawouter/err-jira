@@ -171,17 +171,13 @@ class Jira(BotPlugin):
         issue = self._verify_issue_id(args.pop(0))
         try:
             issue = self.jira.issue(issue)
-            if issue.fields.assignee is not None:
-                assignee = issue.fields.assignee.displayName
-            else:
-                assignee = 'None'
             self.send_card(
                 title= issue.fields.summary,
                 summary = 'Jira issue {}:'.format(issue),
                 link=issue.permalink(),
                 body=issue.fields.status.name,
                 fields=(
-                    ('Assignee',assignee),
+                    ('Assignee', issue.fields.assignee.displayName if issue.fields.assignee else 'None'),
                     ('Status',issue.fields.priority.name),
                 ),
                 color='red',
