@@ -131,7 +131,7 @@ class Jira(BotPlugin):
         if len(users) == 0:
             raise CommandError('No corresponding user found: {}'.format(userstring))
         elif len(users) > 1:
-            raise CommandError('Too many user found: {}'.format(', '.join([u.name for u in users])))
+            raise CommandError('Too many users found: {}'.format(', '.join([u.name for u in users])))
         else:
             user = users[0]
         return user
