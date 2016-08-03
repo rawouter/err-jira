@@ -122,15 +122,6 @@ class Jira(BotPlugin):
         """
         return CONFIG_TEMPLATE
 
-    def _send_msg(self, msg, message):
-        self.send(
-            msg.frm,
-            message,
-            message_type=msg.type,
-            in_reply_to=msg,
-            groupchat_nick_reply=True
-        )
-
     def _find_one_user(self, msg, userstring):
         """
         Return one jira user corresponding to userstring.
@@ -180,13 +171,17 @@ class Jira(BotPlugin):
         issue = self._verify_issue_id(args.pop(0))
         try:
             issue = self.jira.issue(issue)
+            if issue.fields.assignee is not None:
+                assignee = issue.fields.assignee.displayName
+            else:
+                assignee = 'None'
             self.send_card(
                 title= issue.fields.summary,
                 summary = 'Jira issue {}:'.format(issue),
                 link=issue.permalink(),
                 body=issue.fields.status.name,
                 fields=(
-                    ('Assignee',issue.fields.assignee.displayName),
+                    ('Assignee',assignee),
                     ('Status',issue.fields.priority.name),
                 ),
                 color='red',
@@ -205,21 +200,23 @@ class Jira(BotPlugin):
         summary = ' '.join(summary)
         if not summary:
             raise CommandError('You did not provide a summary.\nUsage: jira create [-t <type>] [-p <priority>] <summary> [@user]')
-        summary, username = get_username_from_summary(summary)
-        user = self._find_one_user(msg, username)
+        summary, user = get_username_from_summary(summary)
+        if user is not None:
+            user = self._find_one_user(msg, user)
         try:
-            issue = self.jira.create_issue(
-                project=self.config['PROJECT'],
-                summary=summary,
-                description='Reported by {} in errbot chat'.format(msg.frm.nick),
-                assignee={'name': user.name},
-                issuetype={'name': itype},
-                priority={'name': priority}
-            )
-            self._send_msg(msg, 'Issue {} has been created'.format(issue.key))
+            issue_dict = {
+                'project': self.config['PROJECT'],
+                'summary': summary,
+                'description': 'Reported by {} in errbot chat'.format(msg.frm.nick),
+                'issuetype': {'name': itype},
+                'priority': {'name': priority}
+            }
+            if user is not None:
+                issue_dict['assignee'] = {'name': user.name}
+            issue = self.jira.create_issue(fields = issue_dict)
             self.jira_get(msg, [issue.key])
         except JIRAError:
-            self._send_msg(msg, 'Something went wrong when calling Jira API, please ensure all fields are valid')
+            return 'Something went wrong when calling Jira API, please ensure all fields are valid'
 
     @botcmd(split_args_with=None)
     def jira_transition(self, msg, args):
@@ -245,12 +242,12 @@ class Jira(BotPlugin):
         try:
             issue = self.jira.issue(issueid)
             self.jira.assign_issue(issue, user.name)
-            self._send_msg(msg, 'Issue {} assigned to {}'.format(issue, user))
+            return 'Issue {} assigned to {}'.format(issue, user)
         except JIRAError:
             raise CommandError('Error communicating with Jira, issue {} does not exist?'.format(issue))
 
-    @re_botcmd(pattern=r"(^| )([^\W\d_]+)\-(\d+)( |$)", prefixed=False, flags=re.IGNORECASE)
-    def listen_for_jira_id(self, msg, match):
+    @re_botcmd(pattern=r"(^| )([^\W\d_]+)\-(\d+)( |$|\?|!\.)", prefixed=False, flags=re.IGNORECASE)
+    def jira_listener(self, msg, match):
         """Talk of cookies gives Errbot a craving..."""
         try:
             self.jira_get(msg, ['-'.join(match.groups()[1:3]).upper()])
