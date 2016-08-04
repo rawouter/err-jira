@@ -156,12 +156,13 @@ class Jira(BotPlugin):
         except JIRAError:
             raise CommandError('Error connecting to Jira, issue {} might not exist'.format(issueid))
         transitions = self.jira.transitions(issue)
-        res = {}
-        for t in transitions:
-            res[t['name'].lower()] = t['id']
-        if tname.lower() not in res.keys():
-            raise CommandError('Transition {} does not exist, available transitions: {}'.format(tname, '\n\t- '.join(res.keys())))
-        return res[tname.lower()]
+        transition_to_id = dict((x['name'].lower(), x['id']) for x in transitions)
+        if tname.lower() not in transition_to_id.keys():
+            raise CommandError('Transition {} does not exist, available transitions: {}'.format(
+                tname,
+                ''.join(['\n\t- '+x for x in transition_to_id.keys()]))
+            )
+        return transition_to_id[tname.lower()]
 
     @botcmd(split_args_with=' ')
     def jira_get(self, msg, args):
