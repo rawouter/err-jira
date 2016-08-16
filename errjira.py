@@ -258,7 +258,7 @@ class Jira(BotPlugin):
         try:
             JQL = 'project='+self.config['PROJECT'] + ' and ' + ' '.join(args)
             for issue in self.jira.search_issues(JQL, maxResults=50):
-                yield self.send(msg.frm,  '{} - {} - {}'.format(issue, issue.fields.status.name, issue.fields.summary))
+                yield '[{}]({}) - {} - {}'.format(issue, issue.permalink(), issue.fields.status.name, issue.fields.summary)
         except JIRAError as e:
             yield  e.text
 
@@ -273,7 +273,8 @@ class Jira(BotPlugin):
         if open:
             args += 'and status=Open'.split()
         args += 'order by created desc'.split()
-        yield self.jira_jql(msg, args)
+        for issue in self.jira_jql(msg, args):
+            yield issue
 
 def verify_and_generate_issueid(issueid):
     """
