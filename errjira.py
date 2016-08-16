@@ -174,7 +174,7 @@ class Jira(BotPlugin):
             issue = self.jira.issue(issue)
             self.send_card(
                 title= issue.fields.summary,
-                summary = 'Jira issue {}: {}'.format(issue, msg.frm.person),
+                summary = 'Jira issue {}:'.format(issue),
                 link=issue.permalink(),
                 body=issue.fields.status.name,
                 fields=(
@@ -247,7 +247,9 @@ class Jira(BotPlugin):
     def jira_listener(self, msg, match):
         """List for jira ID and display theyr summary"""
         try:
-            self.jira_get(msg, ['-'.join(match.groups()[1:3]).upper()])
+            if msg.frm.person != self.bot_config.BOT_PREFIX or \
+               msg.frm.person not in self.bot_config.BOT_ALT_PREFIXES:
+                self.jira_get(msg, ['-'.join(match.groups()[1:3]).upper()])
         except CommandError:
             pass
 
