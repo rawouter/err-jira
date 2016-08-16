@@ -258,7 +258,7 @@ class Jira(BotPlugin):
         try:
             JQL = 'project='+self.config['PROJECT'] + ' and ' + ' '.join(args)
             for issue in self.jira.search_issues(JQL, maxResults=50):
-                yield '{} - {} - {}'.format(issue, issue.fields.status.name, issue.fields.summary)
+                yield '<{}|{}> - {} - {}'.format(issue.permalink(), issue, issue.fields.status.name, issue.fields.summary)
         except JIRAError as e:
             yield e.text
 
