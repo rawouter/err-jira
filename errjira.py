@@ -174,7 +174,7 @@ class Jira(BotPlugin):
             issue = self.jira.issue(issue)
             self.send_card(
                 title= issue.fields.summary,
-                summary = 'Jira issue {}:'.format(issue),
+                summary = 'Jira issue {}: {}'.format(issue, msg.frm.person),
                 link=issue.permalink(),
                 body=issue.fields.status.name,
                 fields=(
