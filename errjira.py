@@ -258,7 +258,7 @@ class Jira(BotPlugin):
         try:
             JQL = 'project='+self.config['PROJECT'] + ' and ' + ' '.join(args)
             for issue in self.jira.search_issues(JQL, maxResults=50):
-                yield '[{}]({}) - {} - {}'.format(issue, issue.permalink(), issue.fields.status.name, issue.fields.summary)
+                yield '{} - [{}]({}) - {}'.format(issue.fields.status.name, issue, issue.permalink(), issue.fields.summary)
         except JIRAError as e:
             yield  e.text
 
@@ -266,16 +266,15 @@ class Jira(BotPlugin):
     @arg_botcmd('--open', dest='open', action='store_true', help='Only open items')
     def jira_search(self, msg, search, open):
         """Search for a Jira tickets in description. Usage: jira search <text>"""
-        return 'link: This is [a link](http://www.errbot.net).'
-        #args = ['(']
-        #args += ['summary', '~', '"'] + search + ['"']
-        #args += ['or', 'description', '~', '"'] + search + ['"']
-        #args += [')']
-        #if open:
-        #    args += 'and status=Open'.split()
-        #args += 'order by created desc'.split()
-        #for x in self.jira_jql(msg, args):
-        #    yield x
+        args = ['(']
+        args += ['summary', '~', '"'] + search + ['"']
+        args += ['or', 'description', '~', '"'] + search + ['"']
+        args += [')']
+        if open:
+            args += 'and status=Open'.split()
+        args += 'order by created desc'.split()
+        for x in self.jira_jql(msg, args):
+            yield x
 
 def verify_and_generate_issueid(issueid):
     """
