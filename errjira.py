@@ -252,6 +252,28 @@ class Jira(BotPlugin):
             pass
 
 
+    @botcmd(split_args_with=None)
+    def jira_jql(self, msg, args):
+        """JQL search for a Jira tickets. Usage: jira search jql <JQL query>"""
+        try:
+            JQL = 'project='+self.config['PROJECT'] + ' and ' + ' '.join(args)
+            for issue in self.jira.search_issues(JQL, maxResults=50):
+                yield '{} - {} - {}'.format(issue, issue.fields.status.name, issue.fields.summary)
+        except JIRAError as e:
+            yield e.text
+
+    @arg_botcmd('search', type=str, nargs='+', help='Search string')
+    @arg_botcmd('--open', dest='open', action='store_true', help='Only open items')
+    def jira_search(self, msg, search, open):
+        """Search for a Jira tickets in description. Usage: jira search <text>"""
+        args = ['summary', '~', '"'] + search + ['"']
+        args += ['or', 'description', '~', '"'] + search + ['"']
+        if open:
+            args += 'and status=Open'.split()
+        args += 'order by created desc'.split()
+        for x in self.jira_jql(msg, args):
+            yield x
+
 def verify_and_generate_issueid(issueid):
     """
     Take a Jira issue ID lowercase, or without a '-' and return a valid Jira issue ID.
