@@ -266,8 +266,10 @@ class Jira(BotPlugin):
     @arg_botcmd('--open', dest='open', action='store_true', help='Only open items')
     def jira_search(self, msg, search, open):
         """Search for a Jira tickets in description. Usage: jira search <text>"""
-        args = ['summary', '~', '"'] + search + ['"']
+        args = ['(']
+        args += ['summary', '~', '"'] + search + ['"']
         args += ['or', 'description', '~', '"'] + search + ['"']
+        args += [')']
         if open:
             args += 'and status=Open'.split()
         args += 'order by created desc'.split()
