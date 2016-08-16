@@ -247,7 +247,7 @@ class Jira(BotPlugin):
     def jira_listener(self, msg, match):
         """List for jira ID and display theyr summary"""
         try:
-            if msg.frm.person != self.bot_config.BOT_PREFIX or \
+            if msg.frm.person.strip() != self.bot_config.BOT_PREFIX.strip() and \
                msg.frm.person not in self.bot_config.BOT_ALT_PREFIXES:
                 self.jira_get(msg, ['-'.join(match.groups()[1:3]).upper()])
         except CommandError:
