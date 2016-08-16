@@ -245,7 +245,7 @@ class Jira(BotPlugin):
 
     @re_botcmd(pattern=r"(^| )([^\W\d_]+)\-(\d+)( |$|\?|!\.)", prefixed=False, flags=re.IGNORECASE)
     def jira_listener(self, msg, match):
-        """Talk of cookies gives Errbot a craving..."""
+        """List for jira ID and display theyr summary"""
         try:
             self.jira_get(msg, ['-'.join(match.groups()[1:3]).upper()])
         except CommandError:
