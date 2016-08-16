@@ -3,7 +3,9 @@ err-jira
 
 An errbot plugin for working with Atlassian JIRA.
 Currently implemented:
-- Search for a Jira issue ID
+- Describe a Jira issue ID
+- Basic search inside summary or description texts
+- Advanced search in JQL
 - Create issue
 - Assign issue to valid user for the project
 - Transition issue
