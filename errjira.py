@@ -274,7 +274,7 @@ class Jira(BotPlugin):
         if open:
             args += 'and status=Open'.split()
         args += 'order by created desc'.split()
-        return self.jira_jql(msg, args):
+        return self.jira_jql(msg, args)
 
 def verify_and_generate_issueid(issueid):
     """
