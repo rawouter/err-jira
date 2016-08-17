@@ -278,6 +278,17 @@ class Jira(BotPlugin):
         for x in self.jira_jql(msg, args):
             yield x
 
+    @botcmd(split_args_with=None)
+    def jira_mine(self, msg, args):
+        """Shortuc to search for opened Jira items assigned to the requesting user"""
+        args = ['(']
+        args += ['assignee', '=', '{}'.format(msg.frm.person)]
+        args += ['AND', 'status', '!=', 'Closed']
+        args += [')']
+        #args += 'order by created desc'.split()
+        for x in self.jira_jql(msg, args):
+            yield x
+
 def verify_and_generate_issueid(issueid):
     """
     Take a Jira issue ID lowercase, or without a '-' and return a valid Jira issue ID.
