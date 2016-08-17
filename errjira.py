@@ -282,10 +282,10 @@ class Jira(BotPlugin):
     def jira_mine(self, msg, args):
         """Shortuc to search for opened Jira items assigned to the requesting user"""
         args = ['(']
-        args += ['assignee', '=', '{}'.format(msg.frm.person)]
+        args += ['assignee', '=', '{}'.format(msg.frm.person.lstrip('@'))]
         args += ['AND', 'status', '!=', 'Closed']
         args += [')']
-        #args += 'order by created desc'.split()
+        args += 'order by created desc'.split()
         for x in self.jira_jql(msg, args):
             yield x
 
